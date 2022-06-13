@@ -1,0 +1,12 @@
+{% extends "layout/index.html" %}
+{% block title %}
+Giriş Yap
+{% endblock %}
+{% block content %}
+    <form action="" method="POST">
+        {{form.hidden_tag()}}
+        {{form.username.label}}{{form.username}} <br>
+        {{form.password.label}}{{form.password}} <br>
+        {{form.submit()}}
+    </form>
+{% endblock %}

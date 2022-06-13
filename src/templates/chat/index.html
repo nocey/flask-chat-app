@@ -1,0 +1,145 @@
+{% extends "layout/index.html" %}
+
+{% block title %}
+title
+{% endblock %}
+{% block content %}
+<script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"
+    integrity="sha256-yr4fRk/GU1ehYJPAs8P4JlTgu0Hdsp4ZKrx8bDEDC3I=" crossorigin="anonymous"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"
+    integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA=="
+    crossorigin="anonymous"></script>
+<script type="text/javascript" charset="utf-8">
+    var socket = io();
+    socket.on('connect', function () {
+        socket.emit('connect_server', {
+            data: 'I\'m connected!',
+            room: '{{ room }}'
+        });
+        // socket.join('{{ room }}');
+    });
+</script>
+
+<div class="ui message container mx-auto" id="messages">
+    {% for message in messages %}
+    {% if current_user.id == message.user_id %}
+    <div class="right floated content get-message">
+        <div class="ui green message">
+            <div class="content content-message">
+                {{ message.message }}
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="left floated content send-message">
+        <div class="ui blue message">
+            <div class="content content-message">
+                {{ message.message }}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    {% endfor %}
+</div>
+<div class="container" id="chat-box-body" data-id="{{current_user.id}}" data-friend_id="{{friend_id}}">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">{{current_user.username}}</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="chat-box">
+                                <div class="chat-box-header">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h4 class="title">Chat</h4>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="pull-right">
+                                                <a href="javascript:void(0);" id="send"
+                                                    class="btn btn-primary btn-round float-right" style="float: right;"
+                                                    data-toggle="tooltip" data-placement="right" title="Send Message">
+                                                    <i class="send icon w-25 float-right"></i>Send
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="chat-box-body">
+                                    <div class="chat-box-list">
+                                        <div class="chat-box-list-item">
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    <div class="chat-box-list-item-header">
+                                                        <div class="row">
+                                                            <div class="col-md-6">
+                                                                <div class="chat-box-list-item-header-title">
+                                                                    <h4 class="title"></h4>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <div class="chat-box-list-item-header-time">
+                                                                    <h4></h4>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="chat-box-footer">
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="chat-box-footer-message">
+                                                <div class="row">
+                                                    <div class="col-md-12">
+                                                        <div class="form-group">
+                                                            <label for="message">Message</label>
+                                                            <textarea class="form-control" id="message"
+                                                                rows="3"></textarea>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $('#send').click(function () {
+        var newMessage = $('.get-message').clone().last();
+        newMessage.find('.content-message').text($('#message').val());
+        newMessage.appendTo('#messages');
+        socket.emit('client_message', {
+            message: $('#message').val(),
+            user_id: $('#chat-box-body').data('id'),
+            room: '{{ room }}',
+            friend_id: $('#chat-box-body').data('friend_id')
+        });
+    });
+
+    socket.on('server_message', function (msg) {
+        console.log($('#chat-box-body').data('id') != msg.user_id)
+        if ($('#chat-box-body').data('id') != msg.user_id) {
+            var newMessage = $('.send-message').clone().last();
+            newMessage.find('.content-message').text(msg.message);
+            newMessage.appendTo('#messages');
+        }
+    });
+</script>
+
+{% endblock %}
